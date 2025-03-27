@@ -21,9 +21,9 @@ function getIndexInCircle(length: number, index: number): number {
 
 // Lista de modelos padrão para usar como fallback
 const DEFAULT_MODELS: ModelInfo[] = [
-  { id: 1, file: "cube.glb", name: "Modelo Teste 1" },
-  { id: 2, file: "sphere.glb", name: "Modelo Teste 2" },
-  { id: 3, file: "cone.glb", name: "Modelo Teste 3" },
+  { id: 1, file: "IQOS_ILUMA_I_BREEZE.glb", name: "IQOS ILUMA" },
+  { id: 2, file: "IQOS_ILUMA_I_ONE_BREEZE.glb", name: "IQOS ILUMA ONE" },
+  { id: 3, file: "IQOS_ILUMA_I_PRIME_BREEZE.glb", name: "IQOS ILUMA PRIME" },
 ];
 
 /**

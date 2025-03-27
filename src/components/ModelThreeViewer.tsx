@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Box } from '@react-three/drei';
-import { Group } from 'three';
+import { Box, useGLTF } from '@react-three/drei';
+import { Group, Object3D } from 'three';
 import { animated } from '@react-spring/three';
 
 interface ModelThreeViewerProps {
@@ -14,9 +14,10 @@ interface ModelThreeViewerProps {
 }
 
 /**
- * Componente para exibir um cubo 3D como fallback para os modelos que não carregarem
+ * Componente para exibir modelos 3D ou um cubo como fallback se o modelo falhar ao carregar
  */
 const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
+  modelPath,
   position,
   scale,
   opacity,
@@ -24,8 +25,57 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   rotation = [0, 0, 0]
 }) => {
   const groupRef = useRef<Group>(null);
-
-  // Animação simples que rotaciona o modelo
+  const [hasError, setHasError] = useState(false);
+  const [modelScene, setModelScene] = useState<Object3D | null>(null);
+  
+  // Função para capturar erros durante o carregamento do modelo
+  const handleError = () => {
+    console.error(`Erro ao carregar modelo ${modelPath}`);
+    setHasError(true);
+  };
+  
+  // Carregar o modelo 3D
+  const { scene } = useGLTF(`/3DMODELS/${modelPath}`, false);
+  
+  // Processar o modelo após o carregamento
+  useEffect(() => {
+    try {
+      if (scene && !hasError) {
+        const clonedScene = scene.clone();
+        
+        // Aplicar material com opacidade a todos os meshes
+        clonedScene.traverse((child: any) => {
+          if (child.isMesh) {
+            child.material = child.material.clone();
+            child.material.transparent = true;
+            child.material.opacity = opacity;
+            
+            if (!isActive) {
+              child.material.roughness = 0.8;
+              child.material.metalness = 0.2;
+            } else {
+              child.material.roughness = 0.4;
+              child.material.metalness = 0.6;
+            }
+          }
+        });
+        
+        setModelScene(clonedScene);
+      }
+    } catch (error) {
+      console.error('Erro ao processar o modelo:', error);
+      handleError();
+    }
+  }, [scene, hasError, isActive, opacity, modelPath]);
+  
+  // Captura erros ao carregar
+  useEffect(() => {
+    if (!scene) {
+      handleError();
+    }
+  }, [scene]);
+  
+  // Animação de rotação
   useFrame((_, delta) => {
     if (groupRef.current) {
       if (isActive) {
@@ -41,15 +91,21 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
       scale={[scale, scale, scale]}
       rotation={rotation}
     >
-      <Box args={[1, 1, 1]}>
-        <meshStandardMaterial 
-          color={isActive ? "#61dafb" : "#285e70"} 
-          transparent={true} 
-          opacity={opacity} 
-          roughness={isActive ? 0.4 : 0.8}
-          metalness={isActive ? 0.6 : 0.2}
-        />
-      </Box>
+      {hasError || !modelScene ? (
+        // Fallback: Cubo colorido quando o modelo falha ao carregar
+        <Box args={[1, 1, 1]}>
+          <meshStandardMaterial 
+            color={isActive ? "#61dafb" : "#285e70"} 
+            transparent={true} 
+            opacity={opacity} 
+            roughness={isActive ? 0.4 : 0.8}
+            metalness={isActive ? 0.6 : 0.2}
+          />
+        </Box>
+      ) : (
+        // Renderizar o modelo 3D carregado
+        <primitive object={modelScene} />
+      )}
     </animated.group>
   );
 };
