@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Group } from 'three';
@@ -25,17 +25,22 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   rotation = [0, 0, 0]
 }) => {
   const groupRef = useRef<Group>(null);
+  
+  // Carregamento do modelo 3D
   const { scene } = useGLTF(`/3DMODELS/${modelPath}`);
+  
+  // Clone a cena para não interferir com outras instâncias
   const clonedScene = scene.clone();
   
   // Aplicar material com opacidade a todos os meshes
   clonedScene.traverse((child: any) => {
     if (child.isMesh) {
+      // Clone o material para não afetar outras instâncias do mesmo modelo
       child.material = child.material.clone();
       child.material.transparent = true;
       child.material.opacity = opacity;
       
-      // Adicionar um leve blur quando não está ativo (pode ser simulado com outros efeitos visuais)
+      // Adicionar um leve blur quando não está ativo (simulado com ajustes de material)
       if (!isActive) {
         child.material.roughness = 0.8;
         child.material.metalness = 0.2;
@@ -47,7 +52,7 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   });
 
   // Animação de rotação automática se o modelo estiver ativo
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (groupRef.current && isActive) {
       groupRef.current.rotation.y += delta * 0.3; // Velocidade de rotação
     }

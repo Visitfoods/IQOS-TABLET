@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useSpring } from '@react-spring/three';
-import { PerspectiveCamera, Environment, OrbitControls } from '@react-three/drei';
+import { PerspectiveCamera, Environment } from '@react-three/drei';
 import ModelThreeViewer from './ModelThreeViewer';
 import { motion } from 'framer-motion';
 
