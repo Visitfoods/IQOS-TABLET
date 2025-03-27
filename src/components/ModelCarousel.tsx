@@ -19,19 +19,29 @@ function getIndexInCircle(length: number, index: number): number {
   return ((index % length) + length) % length;
 }
 
+// Lista de modelos padrão para usar como fallback
+const DEFAULT_MODELS: ModelInfo[] = [
+  { id: 1, file: "cube.glb", name: "Modelo Teste 1" },
+  { id: 2, file: "sphere.glb", name: "Modelo Teste 2" },
+  { id: 3, file: "cone.glb", name: "Modelo Teste 3" },
+];
+
 /**
  * Componente de carrossel para exibir modelos 3D com animações
  * O carrossel mostra 3 modelos: um central destacado e dois laterais menores
  */
 const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
+  // Verificar se temos modelos suficientes, senão usar os padrão
+  const validModels = models.length >= 3 ? models : DEFAULT_MODELS;
+  
   // Estado para controlar o índice do modelo ativo (central)
   const [activeIndex, setActiveIndex] = useState(0);
   
   // Estado para posição dos modelos no carrossel
   const [positions, setPositions] = useState({
-    left: getIndexInCircle(Math.max(models.length, 3), activeIndex - 1),
+    left: getIndexInCircle(validModels.length, activeIndex - 1),
     center: activeIndex,
-    right: getIndexInCircle(Math.max(models.length, 3), activeIndex + 1),
+    right: getIndexInCircle(validModels.length, activeIndex + 1),
   });
 
   // Estado para controlar a direção da animação
@@ -42,23 +52,21 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
 
   // Função para atualizar as posições quando o activeIndex muda
   useEffect(() => {
-    if (models.length >= 3) {
-      setPositions({
-        left: getIndexInCircle(models.length, activeIndex - 1),
-        center: activeIndex,
-        right: getIndexInCircle(models.length, activeIndex + 1),
-      });
-    }
-  }, [activeIndex, models.length]);
+    setPositions({
+      left: getIndexInCircle(validModels.length, activeIndex - 1),
+      center: activeIndex,
+      right: getIndexInCircle(validModels.length, activeIndex + 1),
+    });
+  }, [activeIndex, validModels.length]);
 
   // Função para avançar para o próximo modelo
   const goNext = () => {
-    if (isAnimating || models.length < 3) return;
+    if (isAnimating) return;
     
     setIsAnimating(true);
     setDirection(1);
     setTimeout(() => {
-      setActiveIndex(getIndexInCircle(models.length, activeIndex + 1));
+      setActiveIndex(getIndexInCircle(validModels.length, activeIndex + 1));
       setDirection(0);
       setIsAnimating(false);
     }, 600); // Tempo de duração da animação
@@ -66,12 +74,12 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
 
   // Função para voltar ao modelo anterior
   const goPrev = () => {
-    if (isAnimating || models.length < 3) return;
+    if (isAnimating) return;
     
     setIsAnimating(true);
     setDirection(-1);
     setTimeout(() => {
-      setActiveIndex(getIndexInCircle(models.length, activeIndex - 1));
+      setActiveIndex(getIndexInCircle(validModels.length, activeIndex - 1));
       setDirection(0);
       setIsAnimating(false);
     }, 600); // Tempo de duração da animação
@@ -103,17 +111,6 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
     return { ...positionSpecs[position] };
   };
 
-  // Verificar se temos modelos suficientes
-  if (models.length < 3) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
-        <div className="text-white text-xl">
-          Pelo menos 3 modelos são necessários para o carrossel
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
       <div className="absolute inset-0">
@@ -125,21 +122,21 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
           
           {/* Modelo da esquerda */}
           <ModelThreeViewer
-            modelPath={models[positions.left].file}
+            modelPath={validModels[positions.left].file}
             {...getPositionSpec('left')}
             isActive={false}
           />
           
           {/* Modelo central (ativo) */}
           <ModelThreeViewer
-            modelPath={models[positions.center].file}
+            modelPath={validModels[positions.center].file}
             {...getPositionSpec('center')}
             isActive={true}
           />
           
           {/* Modelo da direita */}
           <ModelThreeViewer
-            modelPath={models[positions.right].file}
+            modelPath={validModels[positions.right].file}
             {...getPositionSpec('right')}
             isActive={false}
           />
@@ -182,7 +179,7 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
         animate={{ opacity: 1, y: 0 }}
         key={positions.center}
       >
-        {models[positions.center].name}
+        {validModels[positions.center].name}
       </motion.div>
     </div>
   );
