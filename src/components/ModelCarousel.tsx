@@ -27,7 +27,7 @@ const MODELS: ModelInfo[] = [
 ];
 
 /**
- * Componente de carrossel para exibir representações simples dos modelos IQOS como cubos coloridos
+ * Componente de carrossel para exibir modelos 3D IQOS 
  * O carrossel mostra 3 modelos: um central destacado e dois laterais menores
  */
 const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
@@ -184,7 +184,7 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
       
       {/* Texto explicativo */}
       <div className="absolute bottom-24 inset-x-0 text-center text-white text-sm opacity-70">
-        Visualização ilustrativa dos modelos IQOS
+        Explore os modelos 3D dos dispositivos IQOS
       </div>
     </div>
   );
