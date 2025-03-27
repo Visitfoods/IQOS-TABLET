@@ -15,9 +15,9 @@ interface ModelThreeViewerProps {
 
 // URLs temporários para modelos 3D online
 const TEMP_MODEL_URLS: Record<string, string> = {
-  "IQOS_ILUMA_I_BREEZE.glb": "https://threejs.org/examples/models/gltf/Soldier.glb",
-  "IQOS_ILUMA_I_ONE_BREEZE.glb": "https://threejs.org/examples/models/gltf/Duck.glb", 
-  "IQOS_ILUMA_I_PRIME_BREEZE.glb": "https://threejs.org/examples/models/gltf/LittlestTokyo.glb"
+  "IQOS_ILUMA_I_BREEZE.glb": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb",
+  "IQOS_ILUMA_I_ONE_BREEZE.glb": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb", 
+  "IQOS_ILUMA_I_PRIME_BREEZE.glb": "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/LittlestTokyo.glb"
 };
 
 /**
