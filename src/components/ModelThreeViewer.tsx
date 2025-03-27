@@ -13,6 +13,13 @@ interface ModelThreeViewerProps {
   rotation?: [number, number, number];
 }
 
+// URLs temporários para modelos 3D online
+const TEMP_MODEL_URLS: Record<string, string> = {
+  "IQOS_ILUMA_I_BREEZE.glb": "https://threejs.org/examples/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf",
+  "IQOS_ILUMA_I_ONE_BREEZE.glb": "https://threejs.org/examples/models/gltf/Duck/glTF/Duck.gltf", 
+  "IQOS_ILUMA_I_PRIME_BREEZE.glb": "https://threejs.org/examples/models/gltf/Flower/glTF/Flower.gltf"
+};
+
 /**
  * Componente para exibir modelos 3D ou um cubo como fallback se o modelo falhar ao carregar
  */
@@ -34,8 +41,11 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     setHasError(true);
   };
   
+  // Usar URL temporário se disponível, senão tentar o caminho local
+  const modelUrl = TEMP_MODEL_URLS[modelPath] || `/3DMODELS/${modelPath}`;
+  
   // Carregar o modelo 3D
-  const { scene } = useGLTF(`/3DMODELS/${modelPath}`, false);
+  const { scene } = useGLTF(modelUrl, false);
   
   // Processar o modelo após o carregamento
   useEffect(() => {
