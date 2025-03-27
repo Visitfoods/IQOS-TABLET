@@ -13,18 +13,6 @@ interface ModelThreeViewerProps {
   rotation?: [number, number, number];
 }
 
-// URLs temporários para modelos 3D online (modelos simples sem compressão Draco)
-const TEMP_MODEL_URLS: Record<string, string> = {
-  "IQOS_ILUMA_I_BREEZE.glb": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb",
-  "IQOS_ILUMA_I_ONE_BREEZE.glb": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb", 
-  "IQOS_ILUMA_I_PRIME_BREEZE.glb": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Cube/glTF-Binary/Cube.glb"
-};
-
-// Pré-carregar os modelos
-Object.values(TEMP_MODEL_URLS).forEach(url => {
-  useGLTF.preload(url);
-});
-
 /**
  * Componente para exibir modelos 3D ou um cubo como fallback se o modelo falhar ao carregar
  */
@@ -46,8 +34,8 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     setHasError(true);
   };
   
-  // Usar URL temporário se disponível, senão tentar o caminho local
-  const modelUrl = TEMP_MODEL_URLS[modelPath] || `/3DMODELS/${modelPath}`;
+  // Usar caminho local para os modelos
+  const modelUrl = `/3DMODELS/${modelPath}`;
   
   // Carregar o modelo 3D
   const { scene } = useGLTF(modelUrl, false);
