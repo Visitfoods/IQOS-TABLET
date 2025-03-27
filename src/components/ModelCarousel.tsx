@@ -19,11 +19,11 @@ function getIndexInCircle(length: number, index: number): number {
   return ((index % length) + length) % length;
 }
 
-// Lista de modelos padrão para usar como fallback
-const DEFAULT_MODELS: ModelInfo[] = [
-  { id: 1, file: "IQOS_ILUMA_I_BREEZE.glb", name: "IQOS ILUMA (Soldado)" },
+// Lista de modelos para exibir no carrossel
+const MODELS: ModelInfo[] = [
+  { id: 1, file: "IQOS_ILUMA_I_BREEZE.glb", name: "IQOS ILUMA (Caixa)" },
   { id: 2, file: "IQOS_ILUMA_I_ONE_BREEZE.glb", name: "IQOS ILUMA ONE (Pato)" },
-  { id: 3, file: "IQOS_ILUMA_I_PRIME_BREEZE.glb", name: "IQOS ILUMA PRIME (Tokyo)" },
+  { id: 3, file: "IQOS_ILUMA_I_PRIME_BREEZE.glb", name: "IQOS ILUMA PRIME (Cubo)" },
 ];
 
 /**
@@ -32,7 +32,7 @@ const DEFAULT_MODELS: ModelInfo[] = [
  */
 const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
   // Verificar se temos modelos suficientes, senão usar os padrão
-  const validModels = models.length >= 3 ? models : DEFAULT_MODELS;
+  const validModels = models.length >= 3 ? models : MODELS;
   
   // Estado para controlar o índice do modelo ativo (central)
   const [activeIndex, setActiveIndex] = useState(0);
