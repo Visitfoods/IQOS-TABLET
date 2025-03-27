@@ -15,9 +15,9 @@ interface ModelThreeViewerProps {
 
 // URLs temporários para modelos 3D online
 const TEMP_MODEL_URLS: Record<string, string> = {
-  "IQOS_ILUMA_I_BREEZE.glb": "https://raw.githubusercontent.com/pmndrs/drei-assets/master/suzanne.glb",
-  "IQOS_ILUMA_I_ONE_BREEZE.glb": "https://raw.githubusercontent.com/pmndrs/drei-assets/master/banana.glb", 
-  "IQOS_ILUMA_I_PRIME_BREEZE.glb": "https://raw.githubusercontent.com/pmndrs/drei-assets/master/shark.glb"
+  "IQOS_ILUMA_I_BREEZE.glb": "https://raw.githubusercontent.com/pmndrs/drei-assets/master/suzanne.gltf",
+  "IQOS_ILUMA_I_ONE_BREEZE.glb": "https://market-assets.fra1.cdn.digitaloceanspaces.com/market-assets/models/duck/model.gltf", 
+  "IQOS_ILUMA_I_PRIME_BREEZE.glb": "https://market-assets.fra1.cdn.digitaloceanspaces.com/market-assets/models/low-poly-spaceship/model.gltf"
 };
 
 /**
