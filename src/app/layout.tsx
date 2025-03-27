@@ -44,10 +44,10 @@ export default function RootLayout({
                   </li>
                   <li>
                     <Link
-                      href="/carrossel"
+                      href="/notas"
                       className="hover:text-blue-400 transition-colors"
                     >
-                      Carrossel 3D
+                      Notas de Voz
                     </Link>
                   </li>
                 </ul>
