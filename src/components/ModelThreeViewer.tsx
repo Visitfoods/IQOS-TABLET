@@ -309,13 +309,8 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     }
   }, [isActive, modelScene, slidePosition]);
   
-  // Aplicar rotação apenas para o modelo central ativo quando não está em animação
+  // Atualizar os materiais e a ordem de renderização em cada frame
   useFrame(() => {
-    // Rotação suave apenas para o modelo central ativo
-    if (groupRef.current && isActive && slidePosition === 'center') {
-      groupRef.current.rotation.y += 0.003;
-    }
-    
     // Atualizar os materiais e a ordem de renderização em cada frame
     if (modelScene) {
       const zPos = posZ.get();
