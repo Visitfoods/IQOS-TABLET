@@ -2,6 +2,7 @@
 
 import React from 'react';
 import ModelCarousel from '@/components/ModelCarousel';
+import CameraBackground from '@/components/CameraBackground';
 
 /**
  * Página que exibe o carrossel de modelos 3D
@@ -28,6 +29,14 @@ export default function CarrosselPage() {
 
   return (
     <main className="h-screen flex flex-col items-center justify-center bg-gray-900">
+      {/* Background da câmara */}
+      <CameraBackground 
+        onError={(error) => {
+          console.error('Erro na câmara:', error);
+        }}
+      />
+      
+      {/* Carrossel de modelos */}
       <ModelCarousel models={models} />
     </main>
   );
