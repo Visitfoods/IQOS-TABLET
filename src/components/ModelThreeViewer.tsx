@@ -392,10 +392,11 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     const deltaX = currentX - previousPosition.x;
     const deltaY = currentY - previousPosition.y;
 
+    // Ajustar a velocidade e direção da rotação
     setModelRotation(prev => ({
-      x: prev.x + deltaY * 0.01,
-      y: prev.y + deltaX * 0.01,
-      z: prev.z
+      x: prev.x + deltaY * 0.005, // Reduzido para movimento mais suave
+      y: prev.y + deltaX * 0.005, // Reduzido para movimento mais suave
+      z: prev.z + (deltaX * 0.002) // Adicionar rotação em Z para mais fluidez
     }));
 
     setPreviousPosition({
@@ -443,6 +444,8 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
           rotation-x={isActive ? modelRotation.x : 0}
           rotation-y={isActive ? modelRotation.y : 0}
           rotation-z={isActive ? modelRotation.z : 0}
+          // Centralizar o ponto de rotação
+          center={[0, 0, 0]}
         />
       )}
     </animated.group>
