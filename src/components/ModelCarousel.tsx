@@ -119,132 +119,133 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
   }, [isAnimating, validModels.length, modelIndices, animationDuration]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="fixed inset-0 flex items-center justify-center">
       {/* Background da câmara */}
       <CameraBackground 
         onError={(error) => {
           console.error('Erro na câmara:', error);
-          // Aqui você pode adicionar uma UI para mostrar o erro ao usuário
         }}
       />
       
       {/* Canvas 3D */}
-      <Canvas
-        className="w-full h-full"
-        shadows
-        camera={{ position: [0, 1, 20], fov: 45 }}
-      >
-        <PerspectiveCamera makeDefault position={[0, 1, 20]} />
-        
-        {/* Iluminação principal */}
-        <ambientLight intensity={3.0} />
-        
-        {/* Luz principal frontal */}
-        <spotLight 
-          position={[0, 15, 40]} 
-          angle={0.5} 
-          penumbra={0.8} 
-          intensity={3.5} 
-          castShadow 
-        />
-        
-        {/* Luzes laterais */}
-        <spotLight 
-          position={[-15, 10, 10]} 
-          angle={0.6} 
-          penumbra={0.8} 
-          intensity={2.5} 
-        />
-        <spotLight 
-          position={[15, 10, 10]} 
-          angle={0.6} 
-          penumbra={0.8} 
-          intensity={2.5} 
-        />
-        
-        {/* Luz inferior para iluminação de base */}
-        <pointLight position={[0, -10, 0]} intensity={1.8} />
-        
-        {/* Luzes adicionais para melhor percepção de profundidade */}
-        <pointLight position={[0, 5, -20]} intensity={1.5} color="#b0c0ff" />
-        <pointLight position={[0, 5, 30]} intensity={1.2} color="#ffcc99" />
-        
-        {/* Luz para iluminar objetos que estão atrás */}
-        <spotLight
-          position={[0, 10, -30]}
-          angle={0.8}
-          penumbra={1}
-          intensity={2.0}
-          color="#aaccff"
-        />
-        
-        {/* Luzes adicionais para iluminar os modelos laterais */}
-        <spotLight 
-          position={[-6, 5, -5]} 
-          angle={0.6} 
-          penumbra={0.9} 
-          intensity={2.0} 
-          color="#ffffff"
-        />
-        <spotLight 
-          position={[6, 5, -5]} 
-          angle={0.6} 
-          penumbra={0.9} 
-          intensity={2.0} 
-          color="#ffffff"
-        />
-        
-        {/* MODELO ESQUERDO */}
-        <ModelThreeViewer
-          key={`model-${modelIndices.left}`}
-          modelPath={validModels[modelIndices.left].file}
-          isActive={false}
-          slidePosition={direction === 'next' ? 'toRight' : direction === 'prev' ? 'toCenter' : 'left'}
-          animationDuration={animationDuration}
-        />
-        
-        {/* MODELO CENTRAL - ATIVO */}
-        <ModelThreeViewer
-          key={`model-${modelIndices.center}`}
-          modelPath={validModels[modelIndices.center].file}
-          isActive={true}
-          slidePosition={direction === 'next' ? 'toLeft' : direction === 'prev' ? 'toRight' : 'center'}
-          animationDuration={animationDuration}
-        />
-        
-        {/* MODELO DIREITO */}
-        <ModelThreeViewer
-          key={`model-${modelIndices.right}`}
-          modelPath={validModels[modelIndices.right].file}
-          isActive={false}
-          slidePosition={direction === 'next' ? 'toCenter' : direction === 'prev' ? 'toLeft' : 'right'}
-          animationDuration={animationDuration}
-        />
+      <div className="w-full h-full">
+        <Canvas
+          className="w-full h-full"
+          shadows
+          camera={{ position: [0, 1, 20], fov: 45 }}
+        >
+          <PerspectiveCamera makeDefault position={[0, 1, 20]} />
+          
+          {/* Iluminação principal */}
+          <ambientLight intensity={3.0} />
+          
+          {/* Luz principal frontal */}
+          <spotLight 
+            position={[0, 15, 40]} 
+            angle={0.5} 
+            penumbra={0.8} 
+            intensity={3.5} 
+            castShadow 
+          />
+          
+          {/* Luzes laterais */}
+          <spotLight 
+            position={[-15, 10, 10]} 
+            angle={0.6} 
+            penumbra={0.8} 
+            intensity={2.5} 
+          />
+          <spotLight 
+            position={[15, 10, 10]} 
+            angle={0.6} 
+            penumbra={0.8} 
+            intensity={2.5} 
+          />
+          
+          {/* Luz inferior para iluminação de base */}
+          <pointLight position={[0, -10, 0]} intensity={1.8} />
+          
+          {/* Luzes adicionais para melhor percepção de profundidade */}
+          <pointLight position={[0, 5, -20]} intensity={1.5} color="#b0c0ff" />
+          <pointLight position={[0, 5, 30]} intensity={1.2} color="#ffcc99" />
+          
+          {/* Luz para iluminar objetos que estão atrás */}
+          <spotLight
+            position={[0, 10, -30]}
+            angle={0.8}
+            penumbra={1}
+            intensity={2.0}
+            color="#aaccff"
+          />
+          
+          {/* Luzes adicionais para iluminar os modelos laterais */}
+          <spotLight 
+            position={[-6, 5, -5]} 
+            angle={0.6} 
+            penumbra={0.9} 
+            intensity={2.0} 
+            color="#ffffff"
+          />
+          <spotLight 
+            position={[6, 5, -5]} 
+            angle={0.6} 
+            penumbra={0.9} 
+            intensity={2.0} 
+            color="#ffffff"
+          />
+          
+          {/* MODELO ESQUERDO */}
+          <ModelThreeViewer
+            key={`model-${modelIndices.left}`}
+            modelPath={validModels[modelIndices.left].file}
+            isActive={false}
+            slidePosition={direction === 'next' ? 'toRight' : direction === 'prev' ? 'toCenter' : 'left'}
+            animationDuration={animationDuration}
+          />
+          
+          {/* MODELO CENTRAL - ATIVO */}
+          <ModelThreeViewer
+            key={`model-${modelIndices.center}`}
+            modelPath={validModels[modelIndices.center].file}
+            isActive={true}
+            slidePosition={direction === 'next' ? 'toLeft' : direction === 'prev' ? 'toRight' : 'center'}
+            animationDuration={animationDuration}
+          />
+          
+          {/* MODELO DIREITO */}
+          <ModelThreeViewer
+            key={`model-${modelIndices.right}`}
+            modelPath={validModels[modelIndices.right].file}
+            isActive={false}
+            slidePosition={direction === 'next' ? 'toCenter' : direction === 'prev' ? 'toLeft' : 'right'}
+            animationDuration={animationDuration}
+          />
 
-        <Environment preset="city" />
-      </Canvas>
+          <Environment preset="city" />
+        </Canvas>
+      </div>
 
       {/* Botões de navegação */}
-      <div className="absolute inset-x-0 bottom-12 flex justify-center gap-12 z-10">
+      <div className="absolute inset-x-0 bottom-1/4 flex justify-center gap-24 z-10">
         <motion.button
           onClick={goPrev}
           disabled={isAnimating}
-          className="bg-white/90 text-black rounded-full p-4 shadow-xl hover:bg-white"
+          className="bg-white/90 text-black rounded-full p-6 shadow-xl hover:bg-white"
           whileTap={{ scale: 0.95 }}
           whileHover={{ scale: 1.05 }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </motion.button>
         <motion.button
           onClick={goNext}
           disabled={isAnimating}
-          className="bg-white/90 text-black rounded-full p-4 shadow-xl hover:bg-white"
+          className="bg-white/90 text-black rounded-full p-6 shadow-xl hover:bg-white"
           whileTap={{ scale: 0.95 }}
           whileHover={{ scale: 1.05 }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </motion.button>
@@ -252,17 +253,17 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
 
       {/* Nome do modelo ativo */}
       <motion.div
-        className="absolute top-12 inset-x-0 text-center z-10"
+        className="absolute top-1/4 inset-x-0 text-center z-10"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         key={modelIndices.center}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
       >
-        <h1 className="text-white text-4xl font-bold tracking-wide">{validModels[modelIndices.center].name}</h1>
+        <h1 className="text-white text-6xl font-bold tracking-wide">{validModels[modelIndices.center].name}</h1>
       </motion.div>
 
       {/* Texto explicativo */}
-      <div className="absolute bottom-28 inset-x-0 text-center text-white text-sm opacity-70">
+      <div className="absolute bottom-1/3 inset-x-0 text-center text-white text-xl opacity-70">
         Explore os modelos 3D dos dispositivos IQOS
       </div>
     </div>
