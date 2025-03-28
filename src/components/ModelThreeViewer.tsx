@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Group, Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { animated, useSpring } from '@react-spring/three';
+import { OrbitControls } from '@react-three/drei';
 
 type SlidePositionType = 'left' | 'center' | 'right' | 'toLeft' | 'toCenter' | 'toRight';
 
@@ -370,23 +371,36 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   });
 
   return (
-    <animated.group
-      ref={groupRef}
-      position-x={posX}
-      position-y={posY}
-      position-z={posZ}
-      rotation-y={rotationY}
-      scale-x={scaleXYZ}
-      scale-y={scaleXYZ}
-      scale-z={scaleXYZ}
-    >
-      {modelScene && (
-        <primitive 
-          object={modelScene} 
-          position={[0, 0, 0]}
-        />
-      )}
-    </animated.group>
+    <>
+      <OrbitControls
+        enableZoom={false}
+        enablePan={false}
+        enableDamping={true}
+        dampingFactor={0.05}
+        rotateSpeed={0.5}
+        minPolarAngle={Math.PI / 3} // Limitar rotação vertical
+        maxPolarAngle={Math.PI / 2}
+        target={[0, 0, 0]}
+        makeDefault={false}
+      />
+      <animated.group
+        ref={groupRef}
+        position-x={posX}
+        position-y={posY}
+        position-z={posZ}
+        rotation-y={rotationY}
+        scale-x={scaleXYZ}
+        scale-y={scaleXYZ}
+        scale-z={scaleXYZ}
+      >
+        {modelScene && (
+          <primitive 
+            object={modelScene} 
+            position={[0, 0, 0]}
+          />
+        )}
+      </animated.group>
+    </>
   );
 };
 
