@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { Group, Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { animated, useSpring } from '@react-spring/three';
-import { OrbitControls } from '@react-three/drei';
 
 type SlidePositionType = 'left' | 'center' | 'right' | 'toLeft' | 'toCenter' | 'toRight';
 
@@ -423,43 +422,30 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   }, [isActive, isDragging]);
 
   return (
-    <>
-      <OrbitControls
-        enableZoom={false}
-        enablePan={false}
-        enableDamping={true}
-        dampingFactor={0.05}
-        rotateSpeed={0.5}
-        minPolarAngle={Math.PI / 3} // Limitar rotação vertical
-        maxPolarAngle={Math.PI / 2}
-        target={[0, 0, 0]}
-        makeDefault={false}
-      />
-      <animated.group
-        ref={groupRef}
-        position-x={posX}
-        position-y={posY}
-        position-z={posZ}
-        rotation-y={rotationY}
-        scale-x={scaleXYZ}
-        scale-y={scaleXYZ}
-        scale-z={scaleXYZ}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-      >
-        {modelScene && (
-          <primitive 
-            object={modelScene} 
-            position={[0, 0, 0]}
-            rotation-x={modelRotation.x}
-            rotation-y={modelRotation.y}
-            rotation-z={modelRotation.z}
-          />
-        )}
-      </animated.group>
-    </>
+    <animated.group
+      ref={groupRef}
+      position-x={posX}
+      position-y={posY}
+      position-z={posZ}
+      rotation-y={rotationY}
+      scale-x={scaleXYZ}
+      scale-y={scaleXYZ}
+      scale-z={scaleXYZ}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+    >
+      {modelScene && (
+        <primitive 
+          object={modelScene} 
+          position={[0, 0, 0]}
+          rotation-x={isActive ? modelRotation.x : 0}
+          rotation-y={isActive ? modelRotation.y : 0}
+          rotation-z={isActive ? modelRotation.z : 0}
+        />
+      )}
+    </animated.group>
   );
 };
 
