@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Environment } from '@react-three/drei';
 import ModelThreeViewer from './ModelThreeViewer';
 import { motion } from 'framer-motion';
+import CameraBackground from './CameraBackground';
 
 interface ModelInfo {
   id: number;
@@ -44,24 +45,24 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
     right: getIndexInCircle(validModels.length, 1)
   });
   
-  const animationDuration = 800; // Duração da animação
+  const animationDuration = 1500; // Aumentar duração para animação circular mais suave
 
-  // Posições para os diferentes slots do carrossel
+  // Posições para os diferentes slots do carrossel (formação triangular)
   const positionSpecs = {
     left: { 
-      position: [-5, 1, -4] as [number, number, number], 
-      scale: 6, 
-      opacity: 0.8
+      position: [-6, 0, -15] as [number, number, number], 
+      scale: 54, 
+      opacity: 1.0
     },
     center: { 
       position: [0, 1, 0] as [number, number, number], 
-      scale: 12, 
+      scale: 90, 
       opacity: 1.0
     },
     right: { 
-      position: [5, 1, -4] as [number, number, number], 
-      scale: 6, 
-      opacity: 0.8
+      position: [6, 0, -15] as [number, number, number], 
+      scale: 54, 
+      opacity: 1.0
     },
   };
 
@@ -118,69 +119,91 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
   }, [isAnimating, validModels.length, modelIndices, animationDuration]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center">
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black" ref={canvasRef}>
-        <Canvas shadows frameloop="always">
-          <PerspectiveCamera makeDefault position={[0, 2, 20]} />
-          <ambientLight intensity={0.6} />
-          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1.2} castShadow />
-          <pointLight position={[-10, -10, -10]} intensity={0.4} />
-
-          {/* MODELO ESQUERDO */}
-          <ModelThreeViewer
-            key={`model-${modelIndices.left}`}
-            modelPath={validModels[modelIndices.left].file}
-            isActive={false}
-            slidePosition={direction === 'next' ? 'toRight' : direction === 'prev' ? 'toCenter' : 'left'}
-            animationDuration={animationDuration}
-          />
-          
-          {/* MODELO CENTRAL - ATIVO */}
-          <ModelThreeViewer
-            key={`model-${modelIndices.center}`}
-            modelPath={validModels[modelIndices.center].file}
-            isActive={true}
-            slidePosition={direction === 'next' ? 'toLeft' : direction === 'prev' ? 'toRight' : 'center'}
-            animationDuration={animationDuration}
-          />
-          
-          {/* MODELO DIREITO */}
-          <ModelThreeViewer
-            key={`model-${modelIndices.right}`}
-            modelPath={validModels[modelIndices.right].file}
-            isActive={false}
-            slidePosition={direction === 'next' ? 'toCenter' : direction === 'prev' ? 'toLeft' : 'right'}
-            animationDuration={animationDuration}
-          />
-
-          <Environment preset="city" />
-        </Canvas>
-      </div>
-
+    <div className="relative w-full h-screen overflow-hidden">
+      {/* Background da câmara */}
+      <CameraBackground />
+      
+      {/* Canvas 3D */}
+      <Canvas
+        className="absolute inset-0"
+        shadows
+        dpr={[1, 2]}
+        camera={{ position: [0, 1, 20], fov: 45 }}
+      >
+        <PerspectiveCamera makeDefault position={[0, 1, 20]} />
+        
+        {/* Iluminação */}
+        <ambientLight intensity={3.0} />
+        <directionalLight
+          position={[5, 5, 5]}
+          intensity={2}
+          castShadow
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+        />
+        <spotLight
+          position={[-5, 5, -5]}
+          angle={0.3}
+          penumbra={0.5}
+          intensity={1.5}
+          castShadow
+        />
+        <pointLight position={[0, 5, 0]} intensity={1.5} />
+        
+        {/* Luzes específicas para os modelos laterais */}
+        <spotLight
+          position={[-8, 3, -10]}
+          angle={0.4}
+          penumbra={0.6}
+          intensity={1.2}
+          castShadow
+        />
+        <spotLight
+          position={[8, 3, -10]}
+          angle={0.4}
+          penumbra={0.6}
+          intensity={1.2}
+          castShadow
+        />
+        
+        {/* Modelos 3D */}
+        <ModelThreeViewer
+          modelPath="IQOS_ILUMA_I_ONE_BREEZE.glb"
+          slidePosition={direction === 'next' ? 'toRight' : direction === 'prev' ? 'toCenter' : 'left'}
+          isActive={slidePosition === 'center'}
+          animationDuration={1500}
+        />
+        <ModelThreeViewer
+          modelPath="IQOS_ILUMA_I_PRIME_BREEZE.glb"
+          slidePosition={direction === 'next' ? 'toLeft' : direction === 'prev' ? 'toRight' : 'right'}
+          isActive={slidePosition === 'right' || slidePosition === 'toRight'}
+          animationDuration={1500}
+        />
+        <ModelThreeViewer
+          modelPath="IQOS_ILUMA_I_BREEZE.glb"
+          slidePosition={direction === 'next' ? 'toCenter' : direction === 'prev' ? 'toLeft' : 'left'}
+          isActive={slidePosition === 'left' || slidePosition === 'toLeft'}
+          animationDuration={1500}
+        />
+        
+        {/* Ambiente */}
+        <Environment preset="city" />
+      </Canvas>
+      
       {/* Botões de navegação */}
-      <div className="absolute inset-x-0 bottom-12 flex justify-center gap-12 z-10">
-        <motion.button
+      <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 z-10">
+        <button
           onClick={goPrev}
-          disabled={isAnimating}
-          className="bg-white/90 text-black rounded-full p-4 shadow-xl hover:bg-white"
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.05 }}
+          className="px-6 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-          </svg>
-        </motion.button>
-        <motion.button
+          Anterior
+        </button>
+        <button
           onClick={goNext}
-          disabled={isAnimating}
-          className="bg-white/90 text-black rounded-full p-4 shadow-xl hover:bg-white"
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.05 }}
+          className="px-6 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </motion.button>
+          Próximo
+        </button>
       </div>
 
       {/* Nome do modelo ativo */}
