@@ -30,6 +30,9 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   const groupRef = useRef<Group>(null);
   const [modelScene, setModelScene] = useState<Object3D | null>(null);
   const [loadingAttempted, setLoadingAttempted] = useState(false);
+  const [modelRotation, setModelRotation] = useState({ x: 0, y: 0, z: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [previousPosition, setPreviousPosition] = useState({ x: 0, y: 0 });
   
   // Definições de posição para cada slot do carrossel
   const positionSpecs = useMemo(() => ({
@@ -370,6 +373,55 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     }
   });
 
+  // Função para lidar com o início do drag
+  const handlePointerDown = (event: any) => {
+    if (!isActive) return; // Só permite interação com o modelo ativo
+    setIsDragging(true);
+    setPreviousPosition({
+      x: event.clientX || event.touches[0].clientX,
+      y: event.clientY || event.touches[0].clientY
+    });
+  };
+
+  // Função para lidar com o movimento do drag
+  const handlePointerMove = (event: any) => {
+    if (!isDragging || !isActive) return;
+
+    const currentX = event.clientX || event.touches[0].clientX;
+    const currentY = event.clientY || event.touches[0].clientY;
+
+    const deltaX = currentX - previousPosition.x;
+    const deltaY = currentY - previousPosition.y;
+
+    setModelRotation(prev => ({
+      x: prev.x + deltaY * 0.01,
+      y: prev.y + deltaX * 0.01,
+      z: prev.z
+    }));
+
+    setPreviousPosition({
+      x: currentX,
+      y: currentY
+    });
+  };
+
+  // Função para lidar com o fim do drag
+  const handlePointerUp = () => {
+    setIsDragging(false);
+  };
+
+  // Adicionar event listeners para touch
+  useEffect(() => {
+    if (isActive) {
+      window.addEventListener('touchmove', handlePointerMove);
+      window.addEventListener('touchend', handlePointerUp);
+      return () => {
+        window.removeEventListener('touchmove', handlePointerMove);
+        window.removeEventListener('touchend', handlePointerUp);
+      };
+    }
+  }, [isActive, isDragging]);
+
   return (
     <>
       <OrbitControls
@@ -392,11 +444,18 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
         scale-x={scaleXYZ}
         scale-y={scaleXYZ}
         scale-z={scaleXYZ}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
       >
         {modelScene && (
           <primitive 
             object={modelScene} 
             position={[0, 0, 0]}
+            rotation-x={modelRotation.x}
+            rotation-y={modelRotation.y}
+            rotation-z={modelRotation.z}
           />
         )}
       </animated.group>
