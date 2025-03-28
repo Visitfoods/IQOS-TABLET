@@ -3,7 +3,6 @@ import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Environment } from '@react-three/drei';
 import ModelThreeViewer from './ModelThreeViewer';
 import { motion } from 'framer-motion';
-import CameraBackground from './CameraBackground';
 
 interface ModelInfo {
   id: number;
@@ -120,13 +119,6 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center">
-      {/* Background da câmara */}
-      <CameraBackground 
-        onError={(error) => {
-          console.error('Erro na câmara:', error);
-        }}
-      />
-      
       {/* Canvas 3D */}
       <div className="w-full h-full">
         <Canvas

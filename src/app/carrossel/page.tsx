@@ -27,7 +27,7 @@ export default function CarrosselPage() {
   ];
 
   return (
-    <main>
+    <main className="h-screen flex flex-col items-center justify-center bg-gray-900">
       <ModelCarousel models={models} />
     </main>
   );
