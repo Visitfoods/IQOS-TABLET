@@ -1,0 +1,27 @@
+# Configurações básicas
+title: IQOS Tablet
+description: Visualizador 3D de dispositivos IQOS
+baseurl: ""
+url: "https://visitfoods.github.io/IQOS-TABLET"
+
+# Configurações de codificação
+encoding: utf-8
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+# Configurações de build
+exclude:
+  - node_modules
+  - .git
+  - public/3DMODELS
+  - CONFIGURACAO-CONCLUIDA.md
+  - GITHUB-SYNC.md
+  - paths/
+
+# Redirecionamento para a aplicação Next.js
+permalink: /carrossel/ 
