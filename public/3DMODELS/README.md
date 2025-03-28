@@ -1,14 +1,20 @@
-# Modelos 3D
+# Modelos 3D IQOS
 
-Esta pasta contÈm modelos 3D utilizados pelo projeto.
+Esta pasta cont√©m os modelos 3D utilizados no visualizador.
 
-## Arquivos grandes
+## Estrutura
 
-Os arquivos .glb dos modelos 3D n„o s„o armazenados no GitHub devido ao seu tamanho. Estes arquivos devem ser armazenados separadamente num serviÁo de armazenamento como o Firebase Storage.
+- `modelo1.glb` - Modelo 3D do dispositivo IQOS
+- `modelo2.glb` - Modelo 3D do dispositivo IQOS
+- `modelo3.glb` - Modelo 3D do dispositivo IQOS
 
-## Modelos disponÌveis
+## Especifica√ß√µes
 
-O projeto utiliza os seguintes modelos:
-- IQOS_ILUMA_I_BREEZE.glb
-- IQOS_ILUMA_I_ONE_BREEZE.glb
-- IQOS_ILUMA_I_PRIME_BREEZE.glb
+- Formato: GLB (Binary GL Transmission Format)
+- Otimizado para web
+- Texturas inclu√≠das
+- Anima√ß√µes suportadas
+
+## Uso
+
+Os modelos s√£o carregados automaticamente pelo visualizador 3D e podem ser manipulados atrav√©s da interface do usu√°rio. 
