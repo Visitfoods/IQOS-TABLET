@@ -1,128 +1,227 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Box, useGLTF } from '@react-three/drei';
 import { Group, Object3D } from 'three';
-import { animated } from '@react-spring/three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { animated, useSpring } from '@react-spring/three';
+
+type SlidePositionType = 'left' | 'center' | 'right' | 'toLeft' | 'toCenter' | 'toRight';
 
 interface ModelThreeViewerProps {
   modelPath: string;
-  position: [number, number, number];
-  scale: number;
-  opacity: number;
+  slidePosition: SlidePositionType;
   isActive: boolean;
-  rotation?: [number, number, number];
+  animationDuration?: number;
 }
+
+// Cache global compartilhado entre todas as instâncias do componente
+const modelCacheGlobal: Record<string, Object3D> = {};
 
 /**
  * Componente que exibe modelos 3D dos IQOS
- * com fallback para cubos em caso de erro
+ * com animações suaves e efeitos de profundidade
  */
 const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   modelPath,
-  position,
-  scale,
-  opacity,
+  slidePosition,
   isActive,
-  rotation = [0, 0, 0]
+  animationDuration = 800
 }) => {
   const groupRef = useRef<Group>(null);
-  const [hasError, setHasError] = useState(false);
   const [modelScene, setModelScene] = useState<Object3D | null>(null);
+  const [loadingAttempted, setLoadingAttempted] = useState(false);
   
-  // Definir cores diferentes para cada modelo (usado no fallback)
-  const getModelColor = () => {
-    if (modelPath.includes("PRIME")) return "#ff6b6b";  // Vermelho para PRIME
-    if (modelPath.includes("ONE")) return "#4ecdc4";    // Turquesa para ONE
-    return "#ffbe0b";                                  // Amarelo para padrão/BREEZE
+  // Definições de posição para cada slot do carrossel
+  const positionSpecs = useMemo(() => ({
+    // Posições estáticas
+    left: { 
+      position: [-5, 1, -4] as [number, number, number], 
+      scale: 6, 
+      opacity: 0.8
+    },
+    center: { 
+      position: [0, 1, 0] as [number, number, number], 
+      scale: 12, 
+      opacity: 1.0 
+    },
+    right: { 
+      position: [5, 1, -4] as [number, number, number], 
+      scale: 6, 
+      opacity: 0.8
+    },
+    // Posições de animação (destino da transição)
+    toLeft: { 
+      position: [-5, 1, -4] as [number, number, number], 
+      scale: 6, 
+      opacity: 0.8
+    },
+    toCenter: { 
+      position: [0, 1, 0] as [number, number, number], 
+      scale: 12, 
+      opacity: 1.0 
+    },
+    toRight: { 
+      position: [5, 1, -4] as [number, number, number], 
+      scale: 6, 
+      opacity: 0.8
+    }
+  }), []);
+  
+  // Determinar posição para a animação
+  const targetPosition = positionSpecs[slidePosition];
+  
+  // Descobrir a posição inicial com base na posição final
+  const getInitialPosition = () => {
+    // Se for uma posição de transição (toXXX), precisamos determinar a origem
+    if (slidePosition === 'toLeft') {
+      return positionSpecs.center; // Vem do centro para a esquerda
+    } else if (slidePosition === 'toCenter') {
+      return positionSpecs.right; // Vem da direita para o centro
+    } else if (slidePosition === 'toRight') {
+      return positionSpecs.left; // Vem da esquerda para a direita
+    }
+    
+    // Se não for uma transição, está em posição estática
+    return positionSpecs[slidePosition];
   };
   
-  // Usar caminho local para os modelos
+  const initialPosition = getInitialPosition();
+  
+  // Usar interpolação fluida para a animação
+  const { posX, posY, posZ, scaleXYZ, opacity } = useSpring({
+    from: {
+      posX: initialPosition.position[0],
+      posY: initialPosition.position[1],
+      posZ: initialPosition.position[2],
+      scaleXYZ: initialPosition.scale,
+      opacity: initialPosition.opacity
+    },
+    to: {
+      posX: targetPosition.position[0],
+      posY: targetPosition.position[1],
+      posZ: targetPosition.position[2],
+      scaleXYZ: targetPosition.scale,
+      opacity: targetPosition.opacity
+    },
+    config: {
+      mass: 1,
+      tension: 150,
+      friction: 26,
+      clamp: false,
+      duration: animationDuration
+    }
+  });
+  
+  // URL para o modelo
   const modelUrl = `/3DMODELS/${modelPath}`;
   
-  // Carregar o modelo 3D
-  const { scene } = useGLTF(modelUrl);
-  
-  // Processar o modelo após o carregamento com tratamento de erro
+  // Carregar o modelo com cache global
   useEffect(() => {
-    if (!scene) {
-      setHasError(true);
+    if (loadingAttempted) return;
+    setLoadingAttempted(true);
+    
+    // Verificar cache global primeiro
+    if (modelCacheGlobal[modelPath]) {
+      const cachedModel = modelCacheGlobal[modelPath].clone();
+      updateModelMaterials(cachedModel);
+      setModelScene(cachedModel);
       return;
     }
     
-    try {
-      const clonedScene = scene.clone();
-      
-      // Aplicar material com opacidade a todos os meshes
-      clonedScene.traverse((child: any) => {
-        if (child.isMesh) {
-          child.material = child.material.clone();
-          child.material.transparent = true;
-          child.material.opacity = opacity;
+    // Carregar o modelo se não estiver em cache
+    const loader = new GLTFLoader();
+    loader.load(
+      modelUrl,
+      (gltf) => {
+        try {
+          // Processar o modelo
+          const originalScene = gltf.scene.clone();
           
-          if (!isActive) {
-            child.material.roughness = 0.8;
-            child.material.metalness = 0.2;
-          } else {
-            child.material.roughness = 0.4;
-            child.material.metalness = 0.6;
+          // Guardar uma cópia limpa no cache global
+          modelCacheGlobal[modelPath] = originalScene.clone();
+          
+          // Processar e atualizar materiais
+          updateModelMaterials(originalScene);
+          
+          // Adicionar ao componente
+          setModelScene(originalScene);
+        } catch (error) {
+          console.error(`Erro ao processar modelo ${modelPath}:`, error);
+        }
+      },
+      undefined,
+      (error) => console.error(`Erro ao carregar modelo ${modelPath}:`, error)
+    );
+  }, [modelPath, modelUrl, loadingAttempted]);
+  
+  // Função para atualizar materiais do modelo
+  const updateModelMaterials = (scene: Object3D) => {
+    scene.traverse((child: any) => {
+      if (child.isMesh) {
+        // Clonar material para evitar compartilhamento
+        child.material = child.material.clone();
+        child.material.transparent = true;
+        
+        // Aplicar efeitos visuais baseados no status
+        if (isActive) {
+          child.material.roughness = 0.3;
+          child.material.metalness = 0.7;
+          if (child.material.emissive) {
+            child.material.emissive.set(0x222222);
+            child.material.emissiveIntensity = 0.2;
+          }
+        } else {
+          child.material.roughness = 0.6;
+          child.material.metalness = 0.4;
+        }
+        
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+  };
+  
+  // Atualizar os materiais quando o status ativo muda
+  useEffect(() => {
+    if (modelScene) {
+      updateModelMaterials(modelScene);
+    }
+  }, [isActive, modelScene]);
+  
+  // Aplicar rotação apenas para o modelo central ativo quando não está em animação
+  useFrame(() => {
+    // Rotação suave apenas para o modelo central ativo
+    if (groupRef.current && isActive && slidePosition === 'center') {
+      groupRef.current.rotation.y += 0.003;
+    }
+    
+    // Atualizar a opacidade diretamente no material
+    if (modelScene) {
+      const opacityValue = opacity.get();
+      modelScene.traverse((child: any) => {
+        if (child.isMesh && child.material) {
+          if (child.material.opacity !== opacityValue) {
+            child.material.opacity = opacityValue;
           }
         }
       });
-      
-      setModelScene(clonedScene);
-    } catch (error) {
-      console.error('Erro ao processar o modelo:', error);
-      setHasError(true);
-    }
-  }, [scene, isActive, opacity, modelPath]);
-  
-  // Pré-carregar modelo para melhorar performance
-  useEffect(() => {
-    useGLTF.preload(modelUrl);
-    
-    // Capturar erro caso o modelo não seja carregado
-    const onError = () => {
-      console.error(`Erro ao carregar modelo ${modelPath}`);
-      setHasError(true);
-    };
-    
-    window.addEventListener('error', onError, { once: true });
-    
-    return () => {
-      window.removeEventListener('error', onError);
-    };
-  }, [modelUrl, modelPath]);
-  
-  // Animação de rotação
-  useFrame((_, delta) => {
-    if (groupRef.current) {
-      if (isActive) {
-        groupRef.current.rotation.y += delta * 0.3;
-      }
     }
   });
 
   return (
     <animated.group
       ref={groupRef}
-      position={position}
-      scale={[scale, scale, scale]}
-      rotation={rotation}
+      position-x={posX}
+      position-y={posY}
+      position-z={posZ}
+      scale-x={scaleXYZ}
+      scale-y={scaleXYZ}
+      scale-z={scaleXYZ}
     >
-      {hasError || !modelScene ? (
-        // Fallback: Cubo colorido quando o modelo falha ao carregar
-        <Box args={[1, 1.5, 0.6]}>
-          <meshStandardMaterial 
-            color={isActive ? getModelColor() : "#6c757d"} 
-            transparent={true} 
-            opacity={opacity} 
-            roughness={isActive ? 0.4 : 0.8}
-            metalness={isActive ? 0.6 : 0.2}
-          />
-        </Box>
-      ) : (
-        // Renderizar o modelo 3D carregado
-        <primitive object={modelScene} />
+      {modelScene && (
+        <primitive 
+          object={modelScene} 
+          position={[0, 0, 0]}
+        />
       )}
     </animated.group>
   );

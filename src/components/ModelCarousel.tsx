@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Environment } from '@react-three/drei';
 import ModelThreeViewer from './ModelThreeViewer';
@@ -14,12 +14,10 @@ interface ModelCarouselProps {
   models: ModelInfo[];
 }
 
-// Função para obter o índice circular válido
 function getIndexInCircle(length: number, index: number): number {
   return ((index % length) + length) % length;
 }
 
-// Lista de modelos para exibir no carrossel
 const MODELS: ModelInfo[] = [
   { id: 1, file: "IQOS_ILUMA_I_BREEZE.glb", name: "IQOS ILUMA I BREEZE" },
   { id: 2, file: "IQOS_ILUMA_I_ONE_BREEZE.glb", name: "IQOS ILUMA I ONE BREEZE" },
@@ -28,162 +26,176 @@ const MODELS: ModelInfo[] = [
 
 /**
  * Componente de carrossel para exibir modelos 3D IQOS 
- * O carrossel mostra 3 modelos: um central destacado e dois laterais menores
+ * Implementa um carrossel de 3 posições com animação smooth e profundidade
  */
 const ModelCarousel: React.FC<ModelCarouselProps> = ({ models }) => {
-  // Verificar se temos modelos suficientes, senão usar os padrão
   const validModels = models.length >= 3 ? models : MODELS;
+  const canvasRef = useRef<HTMLDivElement>(null);
   
-  // Estado para controlar o índice do modelo ativo (central)
+  // Estados para controlar os modelos e animações
   const [activeIndex, setActiveIndex] = useState(0);
-  
-  // Estado para posição dos modelos no carrossel
-  const [positions, setPositions] = useState({
-    left: getIndexInCircle(validModels.length, activeIndex - 1),
-    center: activeIndex,
-    right: getIndexInCircle(validModels.length, activeIndex + 1),
-  });
-
-  // Estado para controlar a direção da animação
-  const [direction, setDirection] = useState(0); // 0: inicial, 1: próximo, -1: anterior
-  
-  // Estado para detectar quando a animação está em andamento
   const [isAnimating, setIsAnimating] = useState(false);
+  const [direction, setDirection] = useState<'next' | 'prev' | null>(null);
+  
+  // Inicializar corretamente as posições dos modelos
+  const [modelIndices, setModelIndices] = useState({
+    left: getIndexInCircle(validModels.length, -1),
+    center: 0,
+    right: getIndexInCircle(validModels.length, 1)
+  });
+  
+  const animationDuration = 800; // Duração da animação
 
-  // Função para atualizar as posições quando o activeIndex muda
-  useEffect(() => {
-    setPositions({
-      left: getIndexInCircle(validModels.length, activeIndex - 1),
-      center: activeIndex,
-      right: getIndexInCircle(validModels.length, activeIndex + 1),
-    });
-  }, [activeIndex, validModels.length]);
-
-  // Função para avançar para o próximo modelo
-  const goNext = () => {
-    if (isAnimating) return;
-    
-    setIsAnimating(true);
-    setDirection(1);
-    setTimeout(() => {
-      setActiveIndex(getIndexInCircle(validModels.length, activeIndex + 1));
-      setDirection(0);
-      setIsAnimating(false);
-    }, 600); // Tempo de duração da animação
-  };
-
-  // Função para voltar ao modelo anterior
-  const goPrev = () => {
-    if (isAnimating) return;
-    
-    setIsAnimating(true);
-    setDirection(-1);
-    setTimeout(() => {
-      setActiveIndex(getIndexInCircle(validModels.length, activeIndex - 1));
-      setDirection(0);
-      setIsAnimating(false);
-    }, 600); // Tempo de duração da animação
-  };
-
-  // Posições base para os modelos
+  // Posições para os diferentes slots do carrossel
   const positionSpecs = {
-    left: { position: [-3, 0, -2] as [number, number, number], scale: 0.8, opacity: 0.7 },
-    center: { position: [0, 0, 0] as [number, number, number], scale: 1.2, opacity: 1 },
-    right: { position: [3, 0, -2] as [number, number, number], scale: 0.8, opacity: 0.7 },
+    left: { 
+      position: [-5, 1, -4] as [number, number, number], 
+      scale: 6, 
+      opacity: 0.8
+    },
+    center: { 
+      position: [0, 1, 0] as [number, number, number], 
+      scale: 12, 
+      opacity: 1.0
+    },
+    right: { 
+      position: [5, 1, -4] as [number, number, number], 
+      scale: 6, 
+      opacity: 0.8
+    },
   };
 
-  // Calcular posições conforme a direção da animação
-  const getPositionSpec = (position: 'left' | 'center' | 'right') => {
-    // Mover posições conforme a direção da animação
-    if (direction === 1) {
-      // Ir para o próximo
-      if (position === 'left') return { ...positionSpecs.center };
-      if (position === 'center') return { ...positionSpecs.right };
-      if (position === 'right') return { ...positionSpecs.left };
-    } else if (direction === -1) {
-      // Ir para o anterior
-      if (position === 'left') return { ...positionSpecs.right };
-      if (position === 'center') return { ...positionSpecs.left };
-      if (position === 'right') return { ...positionSpecs.center };
-    }
+  // Função para ir ao próximo modelo (rotação para a esquerda)
+  const goNext = useCallback(() => {
+    if (isAnimating) return;
     
-    // Posição padrão
-    return { ...positionSpecs[position] };
-  };
+    setIsAnimating(true);
+    setDirection('next');
+    
+    // Aguardar a animação terminar antes de atualizar índices
+    setTimeout(() => {
+      // Atualizar índices após a animação
+      const newCenterIndex = modelIndices.right;
+      const newRightIndex = getIndexInCircle(validModels.length, modelIndices.right + 1);
+      const newLeftIndex = modelIndices.center;
+      
+      setActiveIndex(newCenterIndex);
+      setModelIndices({
+        left: newLeftIndex,
+        center: newCenterIndex,
+        right: newRightIndex
+      });
+      
+      setIsAnimating(false);
+      setDirection(null);
+    }, animationDuration);
+  }, [isAnimating, validModels.length, modelIndices, animationDuration]);
+
+  // Função para ir ao modelo anterior (rotação para a direita)
+  const goPrev = useCallback(() => {
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    setDirection('prev');
+    
+    // Aguardar a animação terminar antes de atualizar índices
+    setTimeout(() => {
+      // Atualizar índices após a animação
+      const newCenterIndex = modelIndices.left;
+      const newLeftIndex = getIndexInCircle(validModels.length, modelIndices.left - 1);
+      const newRightIndex = modelIndices.center;
+      
+      setActiveIndex(newCenterIndex);
+      setModelIndices({
+        left: newLeftIndex,
+        center: newCenterIndex,
+        right: newRightIndex
+      });
+      
+      setIsAnimating(false);
+      setDirection(null);
+    }, animationDuration);
+  }, [isAnimating, validModels.length, modelIndices, animationDuration]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
-      <div className="absolute inset-0">
-        <Canvas shadows>
-          <PerspectiveCamera makeDefault position={[0, 0, 6]} />
-          <ambientLight intensity={0.5} />
-          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-          <pointLight position={[-10, -10, -10]} />
-          
-          {/* Modelo da esquerda */}
+    <div className="fixed inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black" ref={canvasRef}>
+        <Canvas shadows frameloop="always">
+          <PerspectiveCamera makeDefault position={[0, 2, 20]} />
+          <ambientLight intensity={0.6} />
+          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1.2} castShadow />
+          <pointLight position={[-10, -10, -10]} intensity={0.4} />
+
+          {/* MODELO ESQUERDO */}
           <ModelThreeViewer
-            modelPath={validModels[positions.left].file}
-            {...getPositionSpec('left')}
+            key={`model-${modelIndices.left}`}
+            modelPath={validModels[modelIndices.left].file}
             isActive={false}
+            slidePosition={direction === 'next' ? 'toRight' : direction === 'prev' ? 'toCenter' : 'left'}
+            animationDuration={animationDuration}
           />
           
-          {/* Modelo central (ativo) */}
+          {/* MODELO CENTRAL - ATIVO */}
           <ModelThreeViewer
-            modelPath={validModels[positions.center].file}
-            {...getPositionSpec('center')}
+            key={`model-${modelIndices.center}`}
+            modelPath={validModels[modelIndices.center].file}
             isActive={true}
+            slidePosition={direction === 'next' ? 'toLeft' : direction === 'prev' ? 'toRight' : 'center'}
+            animationDuration={animationDuration}
           />
           
-          {/* Modelo da direita */}
+          {/* MODELO DIREITO */}
           <ModelThreeViewer
-            modelPath={validModels[positions.right].file}
-            {...getPositionSpec('right')}
+            key={`model-${modelIndices.right}`}
+            modelPath={validModels[modelIndices.right].file}
             isActive={false}
+            slidePosition={direction === 'next' ? 'toCenter' : direction === 'prev' ? 'toLeft' : 'right'}
+            animationDuration={animationDuration}
           />
-          
-          <Environment preset="sunset" />
+
+          <Environment preset="city" />
         </Canvas>
       </div>
-      
+
       {/* Botões de navegação */}
-      <div className="absolute inset-x-0 bottom-10 flex justify-center gap-8 z-10">
+      <div className="absolute inset-x-0 bottom-12 flex justify-center gap-12 z-10">
         <motion.button
           onClick={goPrev}
-          className="bg-white/90 text-black rounded-full p-4 shadow-lg"
+          disabled={isAnimating}
+          className="bg-white/90 text-black rounded-full p-4 shadow-xl hover:bg-white"
           whileTap={{ scale: 0.95 }}
           whileHover={{ scale: 1.05 }}
-          disabled={isAnimating}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </motion.button>
-        
         <motion.button
           onClick={goNext}
-          className="bg-white/90 text-black rounded-full p-4 shadow-lg"
+          disabled={isAnimating}
+          className="bg-white/90 text-black rounded-full p-4 shadow-xl hover:bg-white"
           whileTap={{ scale: 0.95 }}
           whileHover={{ scale: 1.05 }}
-          disabled={isAnimating}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </motion.button>
       </div>
-      
+
       {/* Nome do modelo ativo */}
-      <motion.div 
-        className="absolute top-10 inset-x-0 text-center text-white text-3xl font-bold"
+      <motion.div
+        className="absolute top-12 inset-x-0 text-center z-10"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        key={positions.center}
+        key={modelIndices.center}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
       >
-        {validModels[positions.center].name}
+        <h1 className="text-white text-4xl font-bold tracking-wide">{validModels[modelIndices.center].name}</h1>
       </motion.div>
-      
+
       {/* Texto explicativo */}
-      <div className="absolute bottom-24 inset-x-0 text-center text-white text-sm opacity-70">
+      <div className="absolute bottom-28 inset-x-0 text-center text-white text-sm opacity-70">
         Explore os modelos 3D dos dispositivos IQOS
       </div>
     </div>
