@@ -2,18 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Canvas } from '@react-three/fiber';
 import ModelThreeViewer from './ModelThreeViewer';
 import CameraBackground from './CameraBackground';
 
 export default function ModelCarousel() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(1);
+  const [direction, setDirection] = useState<'next' | 'prev' | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [models] = useState([
     '/3DMODELS/modelo1.glb',
     '/3DMODELS/modelo2.glb',
     '/3DMODELS/modelo3.glb'
   ]);
+
+  // Função para obter os índices dos modelos visíveis
+  const getVisibleModels = () => {
+    const prev = (currentIndex - 1 + models.length) % models.length;
+    const next = (currentIndex + 1) % models.length;
+    return { prev, current: currentIndex, next };
+  };
 
   const handleSelectModel = () => {
     router.push(`/modelo-destaque?modelo=${currentIndex}`);
@@ -22,6 +31,7 @@ export default function ModelCarousel() {
   const handlePrev = () => {
     if (!isTransitioning) {
       setIsTransitioning(true);
+      setDirection('prev');
       setCurrentIndex((prev) => (prev - 1 + models.length) % models.length);
     }
   };
@@ -29,21 +39,40 @@ export default function ModelCarousel() {
   const handleNext = () => {
     if (!isTransitioning) {
       setIsTransitioning(true);
+      setDirection('next');
       setCurrentIndex((prev) => (prev + 1) % models.length);
     }
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsTransitioning(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [currentIndex]);
-
-  const getSlidePosition = () => {
     if (isTransitioning) {
-      return 'toCenter';
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+        setDirection(null);
+      }, 1500);
+      return () => clearTimeout(timer);
     }
+  }, [isTransitioning]);
+
+  const getSlidePosition = (index: number) => {
+    const { prev, current, next } = getVisibleModels();
+    
+    if (isTransitioning) {
+      if (direction === 'next') {
+        if (index === prev) return 'toRight';
+        if (index === current) return 'toLeft';
+        if (index === next) return 'toCenter';
+      } else if (direction === 'prev') {
+        if (index === prev) return 'toCenter';
+        if (index === current) return 'toRight';
+        if (index === next) return 'toLeft';
+      }
+    }
+    
+    if (index === prev) return 'left';
+    if (index === current) return 'center';
+    if (index === next) return 'right';
+    
     return 'center';
   };
 
@@ -53,12 +82,21 @@ export default function ModelCarousel() {
       
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-4xl aspect-square relative">
-          <ModelThreeViewer
-            modelPath={models[currentIndex]}
-            slidePosition={getSlidePosition()}
-            isActive={true}
-            animationDuration={1500}
-          />
+          <Canvas style={{ background: 'transparent' }}>
+            <ambientLight intensity={3.0} />
+            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={0.5} intensity={2} />
+            <pointLight position={[-10, -10, -10]} intensity={1.5} />
+            
+            {models.map((modelPath, index) => (
+              <ModelThreeViewer
+                key={`model-${index}`}
+                modelPath={modelPath}
+                isActive={index === currentIndex}
+                slidePosition={getSlidePosition(index)}
+                animationDuration={1500}
+              />
+            ))}
+          </Canvas>
         </div>
         
         <div className="mt-8 text-center">
