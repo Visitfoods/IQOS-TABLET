@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  basePath: '/IQOS-TABLET',
+  basePath: process.env.NODE_ENV === 'production' ? '/IQOS-TABLET' : '',
   images: {
     remotePatterns: [
       {

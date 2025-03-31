@@ -10,8 +10,9 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redireciona diretamente para a página do carrossel
-    router.push('/carrossel');
+    // Redireciona para a página do carrossel considerando o basePath
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    router.push(`${basePath}/carrossel`);
   }, [router]);
 
   return (
