@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Group } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { animated, useSpring } from '@react-spring/three';
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 
 interface ModelThreeViewerProps {
   modelPath: string;
@@ -15,6 +16,7 @@ interface ModelThreeViewerProps {
   autoRotate?: boolean;
   autoRotateSpeed?: number;
   animationDuration?: number;
+  modelName: string;
 }
 
 // Cache global para os modelos
@@ -27,7 +29,8 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   position = [0, 0, 0],
   scale = 1,
   rotation = [0, 0, 0],
-  animationDuration = 800
+  animationDuration = 800,
+  modelName
 }) => {
   const groupRef = useRef<Group>(null);
   const [modelScene, setModelScene] = useState<Group | null>(null);
@@ -35,6 +38,9 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [modelRotation, setModelRotation] = useState({ x: 0, y: 0, z: 0 });
   const [previousPosition, setPreviousPosition] = useState({ x: 0, y: 0 });
+  const [modelUrl, setModelUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Posições para os diferentes slots do carrossel (formação triangular)
   const positionSpecs = {
@@ -302,6 +308,27 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
       });
     }
   });
+
+  useEffect(() => {
+    // Função para carregar o URL do modelo do Firebase Storage
+    const loadModelFromFirebase = async () => {
+      try {
+        setIsLoading(true);
+        const storage = getStorage();
+        const modelRef = ref(storage, `3DMODELS/Colors/${modelName}`);
+        const url = await getDownloadURL(modelRef);
+        setModelUrl(url);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Erro ao carregar modelo:", error);
+        setError("Não foi possível carregar o modelo 3D. Por favor, tente novamente mais tarde.");
+        setIsLoading(false);
+      }
+    };
+
+    // Carrega o modelo
+    loadModelFromFirebase();
+  }, [modelName]);
 
   return (
     <animated.group

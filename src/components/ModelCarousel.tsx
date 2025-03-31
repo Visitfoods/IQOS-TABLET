@@ -12,9 +12,26 @@ export default function ModelCarousel() {
   const [direction, setDirection] = useState<'next' | 'prev' | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [models] = useState([
-    '/3DMODELS/IQOS_ILUMA_I_BREEZE.glb',
-    '/3DMODELS/IQOS_ILUMA_I_ONE_BREEZE.glb',
-    '/3DMODELS/IQOS_ILUMA_I_PRIME_BREEZE.glb'
+    {
+      id: 1,
+      file: 'IQOS-ONE_Breeze.glb',
+      name: 'IQOS ONE Breeze',
+    },
+    {
+      id: 2,
+      file: 'IQOS-ONE_Leaf.glb',
+      name: 'IQOS ONE Leaf',
+    },
+    {
+      id: 3,
+      file: 'IQOS-ONE_Violet.glb',
+      name: 'IQOS ONE Violet',
+    },
+    {
+      id: 4,
+      file: 'IQOS-ONE_Terracotta.glb',
+      name: 'IQOS ONE Terracotta',
+    }
   ]);
 
   // Função para obter os índices dos modelos visíveis
@@ -102,10 +119,10 @@ export default function ModelCarousel() {
             <pointLight position={[0, 0, 10]} intensity={1} />
             
             {/* Renderizar os três modelos */}
-            {models.map((modelPath, index) => (
+            {models.map((model, index) => (
               <ModelThreeViewer
                 key={`model-${index}`}
-                modelPath={modelPath}
+                modelPath={model.file}
                 isActive={index === currentIndex}
                 slidePosition={getSlidePosition(index)}
                 animationDuration={1500}
@@ -116,7 +133,7 @@ export default function ModelCarousel() {
         
         <div className="mt-8 text-center">
           <h1 className="text-4xl font-bold text-white mb-4">
-            Modelo {currentIndex + 1}
+            Modelo {currentIndex}
           </h1>
           <p className="text-xl text-white/80 mb-8">
             Explore o modelo em detalhes
