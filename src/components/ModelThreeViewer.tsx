@@ -3,8 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import { Group, Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { animated, useSpring } from '@react-spring/three';
-import { Canvas, OrbitControls } from '@react-three/fiber';
-import { Model } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 
 type SlidePositionType = 'left' | 'center' | 'right' | 'toLeft' | 'toCenter' | 'toRight';
 
@@ -219,7 +219,7 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     
     // Verificar cache global primeiro
     if (modelCacheGlobal[modelPath]) {
-      const cachedModel = modelCacheGlobal[modelPath].clone();
+      const cachedModel = modelCacheGlobal[modelPath].clone() as Group;
       updateModelMaterials(cachedModel);
       setModelScene(cachedModel);
       return;
@@ -232,7 +232,7 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
       (gltf) => {
         try {
           // Processar o modelo
-          const originalScene = gltf.scene.clone();
+          const originalScene = gltf.scene.clone() as Group;
           
           // Guardar uma cópia limpa no cache global
           modelCacheGlobal[modelPath] = originalScene.clone();
@@ -436,32 +436,70 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     }
   }, [isActive, isDragging]);
 
+  // Componente interno que será renderizado dentro do Canvas
+  const ModelContent = () => {
+    return (
+      <animated.group
+        ref={groupRef}
+        position-x={posX}
+        position-y={posY}
+        position-z={posZ}
+        rotation-y={rotationY}
+        scale-x={scaleXYZ}
+        scale-y={scaleXYZ}
+        scale-z={scaleXYZ}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+      >
+        {modelScene && (
+          <primitive 
+            object={modelScene} 
+            position={position}
+            rotation-x={isActive ? modelRotation.x : 0}
+            rotation-y={isActive ? modelRotation.y : 0}
+            rotation-z={isActive ? modelRotation.z : 0}
+            center={[0, 0, 0]}
+          />
+        )}
+      </animated.group>
+    );
+  };
+
   return (
-    <animated.group
-      ref={groupRef}
-      position-x={posX}
-      position-y={posY}
-      position-z={posZ}
-      rotation-y={rotationY}
-      scale-x={scaleXYZ}
-      scale-y={scaleXYZ}
-      scale-z={scaleXYZ}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
+    <Canvas
+      camera={{ position: [0, 0, 5], fov: 45 }}
+      style={{ background: 'transparent' }}
     >
-      {modelScene && (
-        <primitive 
-          object={modelScene} 
-          position={position}
-          rotation-x={isActive ? modelRotation.x : 0}
-          rotation-y={isActive ? modelRotation.y : 0}
-          rotation-z={isActive ? modelRotation.z : 0}
-          center={[0, 0, 0]}
+      <ambientLight intensity={3.0} />
+      <spotLight
+        position={[10, 10, 10]}
+        angle={0.15}
+        penumbra={0.5}
+        intensity={2}
+        castShadow
+      />
+      <pointLight position={[-10, -10, -10]} intensity={1.5} />
+      <pointLight position={[0, 0, 10]} intensity={2} />
+      <spotLight
+        position={[-10, 10, -10]}
+        angle={0.15}
+        penumbra={0.5}
+        intensity={2}
+        castShadow
+      />
+      {showControls && (
+        <OrbitControls
+          enableZoom={true}
+          enablePan={true}
+          enableRotate={true}
+          autoRotate={autoRotate}
+          autoRotateSpeed={autoRotateSpeed}
         />
       )}
-    </animated.group>
+      <ModelContent />
+    </Canvas>
   );
 };
 

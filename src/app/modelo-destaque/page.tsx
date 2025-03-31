@@ -36,6 +36,7 @@ export default function ModeloDestaque() {
             showControls={true}
             autoRotate={true}
             autoRotateSpeed={2}
+            slidePosition="center"
           />
         </div>
         
