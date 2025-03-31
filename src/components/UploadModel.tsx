@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/lib/hooks/useAuth';
