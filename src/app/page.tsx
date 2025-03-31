@@ -10,11 +10,8 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Verifica se está rodando em localhost
-    const isLocalhost = window.location.hostname === 'localhost';
-    const basePath = isLocalhost ? '' : '/IQOS-TABLET';
-    
-    router.push(`${basePath}/carrossel`);
+    // Redireciona diretamente para a página do carrossel
+    router.push('/carrossel');
   }, [router]);
 
   return (
