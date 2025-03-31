@@ -3,13 +3,21 @@ import { useFrame } from '@react-three/fiber';
 import { Group, Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { animated, useSpring } from '@react-spring/three';
+import { Canvas, OrbitControls } from '@react-three/fiber';
+import { Model } from '@react-three/fiber';
 
 type SlidePositionType = 'left' | 'center' | 'right' | 'toLeft' | 'toCenter' | 'toRight';
 
 interface ModelThreeViewerProps {
   modelPath: string;
-  slidePosition: SlidePositionType;
   isActive: boolean;
+  slidePosition?: 'left' | 'center' | 'right' | 'toLeft' | 'toCenter' | 'toRight';
+  position?: [number, number, number];
+  scale?: number;
+  rotation?: [number, number, number];
+  showControls?: boolean;
+  autoRotate?: boolean;
+  autoRotateSpeed?: number;
   animationDuration?: number;
 }
 
@@ -22,12 +30,18 @@ const modelCacheGlobal: Record<string, Object3D> = {};
  */
 const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   modelPath,
-  slidePosition,
   isActive,
+  slidePosition = 'center',
+  position = [0, 0, 0],
+  scale = 1,
+  rotation = [0, 0, 0],
+  showControls = false,
+  autoRotate = false,
+  autoRotateSpeed = 1,
   animationDuration = 800
 }) => {
   const groupRef = useRef<Group>(null);
-  const [modelScene, setModelScene] = useState<Object3D | null>(null);
+  const [modelScene, setModelScene] = useState<Group | null>(null);
   const [loadingAttempted, setLoadingAttempted] = useState(false);
   const [modelRotation, setModelRotation] = useState({ x: 0, y: 0, z: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -440,11 +454,10 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
       {modelScene && (
         <primitive 
           object={modelScene} 
-          position={[0, 0, 0]}
+          position={position}
           rotation-x={isActive ? modelRotation.x : 0}
           rotation-y={isActive ? modelRotation.y : 0}
           rotation-z={isActive ? modelRotation.z : 0}
-          // Centralizar o ponto de rotação
           center={[0, 0, 0]}
         />
       )}
