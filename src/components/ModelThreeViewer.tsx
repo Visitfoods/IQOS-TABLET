@@ -39,48 +39,102 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
   // Posições para os diferentes slots do carrossel (formação triangular)
   const positionSpecs = {
     left: { 
-      position: [-6, 0, -15] as [number, number, number], 
-      scale: 0.8, 
+      position: [-0.5, 0, -0.5] as [number, number, number], 
+      scale: 2.5, 
       opacity: 1.0
     },
     center: { 
-      position: [0, 1, 0] as [number, number, number], 
-      scale: 1.2, 
+      position: [0, -0.2, 0] as [number, number, number], 
+      scale: 5.5, 
       opacity: 1.0
     },
     right: { 
-      position: [6, 0, -15] as [number, number, number], 
-      scale: 0.8, 
+      position: [0.5, 0, -0.5] as [number, number, number], 
+      scale: 2.5, 
       opacity: 1.0
     },
     toLeft: {
-      position: [-6, 0, -15] as [number, number, number],
-      scale: 0.8,
+      position: [-0.5, 0, -0.5] as [number, number, number],
+      scale: 2.5,
       opacity: 1.0
     },
     toCenter: {
-      position: [0, 1, 0] as [number, number, number],
-      scale: 1.2,
+      position: [0, -0.2, 0] as [number, number, number],
+      scale: 5.5,
       opacity: 1.0
     },
     toRight: {
-      position: [6, 0, -15] as [number, number, number],
-      scale: 0.8,
+      position: [0.5, 0, -0.5] as [number, number, number],
+      scale: 2.5,
       opacity: 1.0
     }
   };
 
   // Configurar animações com react-spring
   const { posX, posY, posZ, scaleXYZ, rotationY } = useSpring({
-    posX: positionSpecs[slidePosition].position[0],
-    posY: positionSpecs[slidePosition].position[1],
-    posZ: positionSpecs[slidePosition].position[2],
-    scaleXYZ: positionSpecs[slidePosition].scale,
-    rotationY: slidePosition === 'center' ? 0 : slidePosition === 'left' ? -0.5 : 0.5,
+    from: {
+      posX: positionSpecs[slidePosition].position[0],
+      posY: positionSpecs[slidePosition].position[1],
+      posZ: positionSpecs[slidePosition].position[2],
+      scaleXYZ: positionSpecs[slidePosition].scale,
+      rotationY: 0
+    },
+    to: async (next) => {
+      // Criar uma trajetória circular contínua para todas as animações
+      if (slidePosition === 'toCenter') {
+        // Da direita para o centro (movimento circular suave)
+        await next({
+          posX: positionSpecs[slidePosition].position[0],
+          posY: positionSpecs[slidePosition].position[1],
+          posZ: positionSpecs[slidePosition].position[2],
+          rotationY: Math.PI * 0.5, // Rotação de 180 graus
+          scaleXYZ: positionSpecs[slidePosition].scale,
+          config: {
+            mass: 1,
+            tension: 120,
+            friction: 14,
+            clamp: false
+          }
+        });
+      } 
+      else if (slidePosition === 'toLeft') {
+        // Do centro para a esquerda (movimento circular suave)
+        await next({
+          posX: positionSpecs[slidePosition].position[0],
+          posY: positionSpecs[slidePosition].position[1],
+          posZ: positionSpecs[slidePosition].position[2],
+          rotationY: -Math.PI * 0.5, // Rotação negativa de 180 graus
+          scaleXYZ: positionSpecs[slidePosition].scale,
+          config: {
+            mass: 1,
+            tension: 120,
+            friction: 14,
+            clamp: false
+          }
+        });
+      }
+      else if (slidePosition === 'toRight') {
+        // Da esquerda para a direita (movimento circular suave)
+        await next({
+          posX: positionSpecs[slidePosition].position[0],
+          posY: positionSpecs[slidePosition].position[1],
+          posZ: positionSpecs[slidePosition].position[2],
+          rotationY: Math.PI, // Rotação completa de 360 graus
+          scaleXYZ: positionSpecs[slidePosition].scale,
+          config: {
+            mass: 1,
+            tension: 120,
+            friction: 14,
+            clamp: false
+          }
+        });
+      }
+    },
     config: {
       mass: 1,
-      tension: 170,
-      friction: 26,
+      tension: 120,
+      friction: 14,
+      clamp: false,
       duration: animationDuration
     }
   });
@@ -90,8 +144,11 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     if (loadingAttempted) return;
     setLoadingAttempted(true);
     
+    console.log(`Tentando carregar modelo: ${modelPath}`);
+    
     // Verificar cache global primeiro
     if (modelCacheGlobal[modelPath]) {
+      console.log(`Modelo encontrado no cache: ${modelPath}`);
       const cachedModel = modelCacheGlobal[modelPath].clone() as Group;
       setModelScene(cachedModel);
       return;
@@ -103,8 +160,13 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
       modelPath,
       (gltf) => {
         try {
+          console.log(`Modelo carregado com sucesso: ${modelPath}`);
           // Processar o modelo
           const originalScene = gltf.scene.clone() as Group;
+          
+          // Ajustar escala e posição inicial
+          originalScene.scale.set(2.0, 2.0, 2.0); // Escala base maior
+          originalScene.position.set(0, 0, 0);
           
           // Guardar uma cópia limpa no cache global
           modelCacheGlobal[modelPath] = originalScene.clone();
@@ -115,8 +177,21 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
           console.error(`Erro ao processar modelo ${modelPath}:`, error);
         }
       },
-      undefined,
-      (error) => console.error(`Erro ao carregar modelo ${modelPath}:`, error)
+      (progress) => {
+        console.log(`Progresso do carregamento ${modelPath}:`, (progress.loaded / progress.total) * 100, '%');
+      },
+      (error: unknown) => {
+        if (error instanceof Error) {
+          console.error(`Erro ao carregar modelo ${modelPath}:`, error);
+          console.error('Detalhes do erro:', {
+            url: modelPath,
+            errorMessage: error.message,
+            errorStack: error.stack
+          });
+        } else {
+          console.error(`Erro desconhecido ao carregar modelo ${modelPath}:`, error);
+        }
+      }
     );
   }, [modelPath, loadingAttempted]);
 

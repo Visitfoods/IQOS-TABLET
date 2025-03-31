@@ -12,9 +12,9 @@ export default function ModelCarousel() {
   const [direction, setDirection] = useState<'next' | 'prev' | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [models] = useState([
-    '/3DMODELS/modelo1.glb',
-    '/3DMODELS/modelo2.glb',
-    '/3DMODELS/modelo3.glb'
+    '/3DMODELS/IQOS_ILUMA_I_BREEZE.glb',
+    '/3DMODELS/IQOS_ILUMA_I_ONE_BREEZE.glb',
+    '/3DMODELS/IQOS_ILUMA_I_PRIME_BREEZE.glb'
   ]);
 
   // Função para obter os índices dos modelos visíveis
@@ -81,12 +81,27 @@ export default function ModelCarousel() {
       <CameraBackground />
       
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-4xl aspect-square relative">
-          <Canvas style={{ background: 'transparent' }}>
-            <ambientLight intensity={3.0} />
-            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={0.5} intensity={2} />
-            <pointLight position={[-10, -10, -10]} intensity={1.5} />
+        <div className="w-full max-w-6xl aspect-square relative">
+          <Canvas 
+            style={{ background: 'transparent' }}
+            camera={{ position: [0, 0, 3], fov: 55 }}
+          >
+            {/* Iluminação principal */}
+            <ambientLight intensity={2.0} />
+            <directionalLight position={[0, 10, 5]} intensity={1.5} />
             
+            {/* Luzes frontais */}
+            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={0.5} intensity={1.5} />
+            <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={0.5} intensity={1.5} />
+            
+            {/* Luzes laterais */}
+            <pointLight position={[-10, -10, -10]} intensity={1} />
+            <pointLight position={[10, -10, -10]} intensity={1} />
+            
+            {/* Luz de preenchimento */}
+            <pointLight position={[0, 0, 10]} intensity={1} />
+            
+            {/* Renderizar os três modelos */}
             {models.map((modelPath, index) => (
               <ModelThreeViewer
                 key={`model-${index}`}
