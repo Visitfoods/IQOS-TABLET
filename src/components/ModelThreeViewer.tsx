@@ -326,66 +326,6 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
     }
   }, [isActive, modelScene, slidePosition]);
   
-  // Atualizar os materiais e a ordem de renderização em cada frame
-  useFrame(() => {
-    // Atualizar os materiais e a ordem de renderização em cada frame
-    if (modelScene) {
-      const zPos = posZ.get();
-      const xPos = posX.get();
-      
-      // Calcular o renderOrder dinamicamente baseado na posição 3D atual
-      let dynamicRenderOrder;
-      
-      if (slidePosition.startsWith('to')) {
-        // Durante animações, calcular ordem de renderização baseada na posição Z atual
-        dynamicRenderOrder = Math.floor((zPos + 20) * 2);
-        
-        // Ajustes específicos para diferentes animações
-        if (slidePosition === 'toRight' && zPos < -10) {
-          dynamicRenderOrder -= 10;
-        }
-        else if (slidePosition === 'toCenter' && zPos > -5) {
-          dynamicRenderOrder += 15;
-        }
-      } 
-      else {
-        // Para posições estáticas (não animadas)
-        if (slidePosition === 'center') {
-          dynamicRenderOrder = 30; // Modelo central sempre na frente
-        } else {
-          // Modelos laterais ficam atrás
-          dynamicRenderOrder = 10;
-        }
-      }
-      
-      // Limite para evitar valores extremos
-      dynamicRenderOrder = Math.max(0, Math.min(dynamicRenderOrder, 50));
-      
-      modelScene.traverse((child: any) => {
-        if (child.isMesh) {
-          // Configurações de material para melhorar a visualização de profundidade
-          child.material.transparent = false;
-          child.material.opacity = 1.0;
-          child.material.depthWrite = true; 
-          child.material.depthTest = true;
-          
-          // Aumentar o contraste dos objetos que estão na frente
-          if (slidePosition === 'center' || (slidePosition === 'toCenter' && zPos > -5)) {
-            child.material.roughness = 0.3;
-            child.material.metalness = 0.7;
-          } else {
-            // Diminuir brilho para objetos mais distantes, mas manter visível
-            child.material.roughness = 0.4;
-            child.material.metalness = 0.6;
-          }
-          
-          // Atualizar renderOrder durante a animação
-          child.renderOrder = dynamicRenderOrder;
-        }
-      });
-    }
-  });
-
   // Função para lidar com o início do drag
   const handlePointerDown = (event: any) => {
     if (!isActive) return; // Só permite interação com o modelo ativo
@@ -438,6 +378,65 @@ const ModelThreeViewer: React.FC<ModelThreeViewerProps> = ({
 
   // Componente interno que será renderizado dentro do Canvas
   const ModelContent = () => {
+    // Mover o useFrame para dentro do ModelContent
+    useFrame(() => {
+      if (modelScene) {
+        const zPos = posZ.get();
+        const xPos = posX.get();
+        
+        // Calcular o renderOrder dinamicamente baseado na posição 3D atual
+        let dynamicRenderOrder;
+        
+        if (slidePosition.startsWith('to')) {
+          // Durante animações, calcular ordem de renderização baseada na posição Z atual
+          dynamicRenderOrder = Math.floor((zPos + 20) * 2);
+          
+          // Ajustes específicos para diferentes animações
+          if (slidePosition === 'toRight' && zPos < -10) {
+            dynamicRenderOrder -= 10;
+          }
+          else if (slidePosition === 'toCenter' && zPos > -5) {
+            dynamicRenderOrder += 15;
+          }
+        } 
+        else {
+          // Para posições estáticas (não animadas)
+          if (slidePosition === 'center') {
+            dynamicRenderOrder = 30; // Modelo central sempre na frente
+          } else {
+            // Modelos laterais ficam atrás
+            dynamicRenderOrder = 10;
+          }
+        }
+        
+        // Limite para evitar valores extremos
+        dynamicRenderOrder = Math.max(0, Math.min(dynamicRenderOrder, 50));
+        
+        modelScene.traverse((child: any) => {
+          if (child.isMesh) {
+            // Configurações de material para melhorar a visualização de profundidade
+            child.material.transparent = false;
+            child.material.opacity = 1.0;
+            child.material.depthWrite = true; 
+            child.material.depthTest = true;
+            
+            // Aumentar o contraste dos objetos que estão na frente
+            if (slidePosition === 'center' || (slidePosition === 'toCenter' && zPos > -5)) {
+              child.material.roughness = 0.3;
+              child.material.metalness = 0.7;
+            } else {
+              // Diminuir brilho para objetos mais distantes, mas manter visível
+              child.material.roughness = 0.4;
+              child.material.metalness = 0.6;
+            }
+            
+            // Atualizar renderOrder durante a animação
+            child.renderOrder = dynamicRenderOrder;
+          }
+        });
+      }
+    });
+
     return (
       <animated.group
         ref={groupRef}
