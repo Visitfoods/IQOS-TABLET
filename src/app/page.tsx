@@ -1,34 +1,24 @@
 "use client";
 
-import React from 'react';
-import ModelCarousel from '@/components/ModelCarousel';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 /**
- * Página principal que exibe o carrossel de modelos 3D
+ * Página principal que redireciona para o carrossel
  */
 export default function HomePage() {
-  // Dados dos modelos 3D
-  const models = [
-    {
-      id: 1,
-      file: 'IQOS_ILUMA_I_BREEZE.glb',
-      name: 'IQOS ILUMA I BREEZE',
-    },
-    {
-      id: 2,
-      file: 'IQOS_ILUMA_I_ONE_BREEZE.glb',
-      name: 'IQOS ILUMA I ONE BREEZE',
-    },
-    {
-      id: 3,
-      file: 'IQOS_ILUMA_I_PRIME_BREEZE.glb',
-      name: 'IQOS ILUMA I PRIME BREEZE',
-    },
-  ];
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/carrossel');
+  }, [router]);
 
   return (
-    <main>
-      <ModelCarousel models={models} />
+    <main className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-4">Bem-vindo ao Visualizador 3D IQOS Tablet</h1>
+        <p>Redirecionando para o visualizador 3D...</p>
+      </div>
     </main>
   );
 }
