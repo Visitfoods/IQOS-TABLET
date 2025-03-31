@@ -1,14 +1,21 @@
 "use client";
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 /**
  * Página principal que redireciona para o carrossel
  */
 export default function HomePage() {
+  const router = useRouter();
+
   useEffect(() => {
-    window.location.href = '/IQOS-TABLET/carrossel';
-  }, []);
+    // Verifica se está rodando em localhost
+    const isLocalhost = window.location.hostname === 'localhost';
+    const basePath = isLocalhost ? '' : '/IQOS-TABLET';
+    
+    router.push(`${basePath}/carrossel`);
+  }, [router]);
 
   return (
     <main className="flex min-h-screen items-center justify-center">

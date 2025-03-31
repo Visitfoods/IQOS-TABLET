@@ -123,6 +123,7 @@ export default function ModelCarousel() {
               <ModelThreeViewer
                 key={`model-${index}`}
                 modelPath={model.file}
+                modelName={model.file}
                 isActive={index === currentIndex}
                 slidePosition={getSlidePosition(index)}
                 animationDuration={1500}
