@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 /**
  * Página principal que redireciona para o carrossel
  */
 export default function HomePage() {
-  const router = useRouter();
-
   useEffect(() => {
-    router.push('/carrossel');
-  }, [router]);
+    window.location.href = '/carrossel';
+  }, []);
 
   return (
     <main className="flex min-h-screen items-center justify-center">
